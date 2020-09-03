@@ -18,37 +18,36 @@ const q1 = (req, res) => {
     postCode,
     country,
   } = req.body;
-  let values = Object.values(req.body);
-  values.forEach((value) => {
-    if (order === "shirt") {
-      if (size === "undefined") {
-        res.json({ status: "error", error: "missing-data" });
-        return;
-      }
-    } else if (value === "undefined" || value === "") {
-      res.json({ status: "error", error: "missing-data" });
-      return;
+
+  let response = { status: "success" };
+
+  if (order === "shirt") {
+    if (stock.shirt[size] < 1) {
+      response = { status: "error", error: "unavailable" };
     }
-  });
+  }
   if (order === "bottles") {
     if (stock.bottles < 1) {
-      res.json({ status: "error", error: "unavailable" });
+      response = { status: "error", error: "unavailable" };
     }
-  } else if (order === "shirt") {
-    if (stock.shirt[size] < 1) {
-      res.json({ status: "error", error: "unavailable" });
-    }
-  } else if (order === "socks") {
-    if (stock.socks < 1) {
-      res.json({ status: "error", error: "unavailable" });
-    }
-  } else if (customers.find((customer) => customer.email === email)) {
-    res.json({ status: "error", error: "repeat-customer" });
-  } else if (country !== "canada") {
-    res.json({ status: "error", error: "undeliverable" });
-  } else {
-    return res.json({ status: "success" });
   }
+  if (order === "socks") {
+    if (stock.socks < 1) {
+      response = { status: "error", error: "unavailable" };
+    }
+  }
+  if (
+    customers.find((customer) => {
+      return customer.email === email;
+    })
+  ) {
+    response = { status: "error", error: "repeat-customer" };
+  }
+
+  if (country !== "Canada") {
+    response = { status: "error", error: "undeliverable" };
+  }
+  res.json({ status: "success" });
 };
 
 const q2 = (req, res) => {
